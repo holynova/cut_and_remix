@@ -23,7 +23,9 @@ const state = {
     weavePattern: 'plain',
     shadowDepth: 40,
     edgeHighlight: 20,
-    paperTexture: 'none'
+    paperTexture: 'none',
+    autoCrop: true,
+    stripOrder: 'normal'
   },
   
   // 缩放与平移参数
@@ -103,7 +105,11 @@ const el = {
   groupOffsetY: document.getElementById('control-group-offset-y'),
   groupWaveType: document.getElementById('control-group-wave-type'),
   groupWeavePattern: document.getElementById('control-group-weave-pattern'),
-  labelOffsetX: document.getElementById('label-offset-x')
+  labelOffsetX: document.getElementById('label-offset-x'),
+  chkAutoCrop: document.getElementById('chk-auto-crop'),
+  btnSidebarExport: document.getElementById('btn-sidebar-export'),
+  selectStripOrder: document.getElementById('select-strip-order'),
+  groupStripOrder: document.getElementById('control-group-strip-order')
 };
 
 // === 核心：初始化与事件绑定 ===
@@ -144,6 +150,8 @@ function scheduleRender() {
   state.options.weavePattern = el.selectWeavePattern.value;
   state.options.paperTexture = el.selectPaperTexture.value;
   state.options.weftColor = el.inputWeftColor.value;
+  state.options.autoCrop = el.chkAutoCrop.checked;
+  state.options.stripOrder = el.selectStripOrder.value;
 
   // 调用编织引擎进行实时 Canvas 绘制
   renderWeave(el.canvas, {
@@ -170,6 +178,7 @@ function bindControlEvents() {
     el.groupOffsetY.classList.remove('hidden');
     el.groupWeavePattern.classList.remove('hidden');
     el.groupWaveType.classList.add('hidden');
+    el.groupStripOrder.classList.add('hidden');
     el.labelOffsetX.textContent = '经向图像位移 (Warp Shift)';
     
     scheduleRender();
@@ -186,6 +195,7 @@ function bindControlEvents() {
     el.groupOffsetY.classList.remove('hidden'); // 依然控制最大位移
     el.groupWeavePattern.classList.add('hidden');
     el.groupWaveType.classList.remove('hidden');
+    el.groupStripOrder.classList.remove('hidden');
     el.labelOffsetX.textContent = '横向相位调节 (Phase Shift)';
     
     scheduleRender();
@@ -277,9 +287,22 @@ function bindControlEvents() {
     });
   });
 
-  // 全局动作
+  // 自动切边切换
+  el.chkAutoCrop.addEventListener('change', () => {
+    state.options.autoCrop = el.chkAutoCrop.checked;
+    scheduleRender();
+  });
+
+  // 条带水平重排切换
+  el.selectStripOrder.addEventListener('change', () => {
+    state.options.stripOrder = el.selectStripOrder.value;
+    scheduleRender();
+  });
+
+  // 全局动作与侧边栏动作
   el.btnReset.addEventListener('click', resetParameters);
   el.btnExport.addEventListener('click', exportResult);
+  el.btnSidebarExport.addEventListener('click', exportResult);
 }
 
 // === 重置参数 ===
@@ -303,6 +326,10 @@ function resetParameters() {
   el.selectWaveType.value = 'alternating';
   el.selectWeavePattern.value = 'plain';
   el.selectPaperTexture.value = 'none';
+  el.chkAutoCrop.checked = true;
+  state.options.autoCrop = true;
+  el.selectStripOrder.value = 'normal';
+  state.options.stripOrder = 'normal';
   
   // 重置回 grid
   el.typeGrid.click();
@@ -477,7 +504,7 @@ function bindPresetEvents() {
 
 function loadPreset(id) {
   // 设置样例图片地址
-  const samplePath = `assets/sample${id}.jpg`;
+  const samplePath = `assets/sample${id}.jpg?v=2`;
   const img = new Image();
   img.src = samplePath;
   img.onload = () => {
@@ -511,6 +538,10 @@ function loadPreset(id) {
       el.valEdgeHighlight.textContent = '15%';
       
       el.selectPaperTexture.value = 'none';
+      
+      // Preset 1 默认关闭切边以显示原始照片的边框，但允许开启
+      el.chkAutoCrop.checked = false;
+      state.options.autoCrop = false;
       
       // 纬线设置成底图色（配合错位时的背景透出，图1的蓝色调背景）
       el.modeWeftColor.click();

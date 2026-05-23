@@ -106,15 +106,15 @@
           </h2>
           <div class="preset-cards">
             <div class="preset-card" id="preset-1" data-sample="1">
-              <div class="preset-thumb" style="background-image: url('assets/sample1.jpg')"></div>
+              <div class="preset-thumb" style="background-image: url('assets/sample1.jpg?v=2')"></div>
               <span>竖条错位波浪</span>
             </div>
             <div class="preset-card" id="preset-2" data-sample="2">
-              <div class="preset-thumb" style="background-image: url('assets/sample2.jpg')"></div>
+              <div class="preset-thumb" style="background-image: url('assets/sample2.jpg?v=2')"></div>
               <span>马赛克格子平织</span>
             </div>
             <div class="preset-card" id="preset-3" data-sample="3">
-              <div class="preset-thumb" style="background-image: url('assets/sample3.jpg')"></div>
+              <div class="preset-thumb" style="background-image: url('assets/sample3.jpg?v=2')"></div>
               <span>斜纹阶梯质感</span>
             </div>
           </div>
@@ -228,6 +228,28 @@
               <option value="random">随机噪音</option>
             </select>
           </div>
+
+          <!-- 条带重排（仅当竖条错位时有用） -->
+          <div class="control-group hidden" id="control-group-strip-order">
+            <div class="control-header">
+              <label for="select-strip-order">条带水平重排</label>
+            </div>
+            <select id="select-strip-order" class="custom-select">
+              <option value="normal">正常顺序 (Normal)</option>
+              <option value="mirror-swap">左右交替镜像 (Mirrored Alternate)</option>
+              <option value="faro-shuffle">左右交错穿插 (Faro Interlace)</option>
+              <option value="random-shuffle">随机乱序 (Random Shuffle)</option>
+            </select>
+          </div>
+
+          <!-- 自动切边 -->
+          <div class="control-group" id="control-group-auto-crop">
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-auto-crop" checked>
+              <span class="checkmark"></span>
+              <span>自动切边 (去除外露背景)</span>
+            </label>
+          </div>
         </div>
 
         <!-- 纸纹与3D质感控制 -->
@@ -281,12 +303,20 @@
             </select>
           </div>
         </div>
+
+        <!-- 动作操作 -->
+        <div class="panel-section actions-section">
+          <button id="btn-sidebar-export" class="btn btn-primary btn-full-width" title="导出最终生成的图片">
+            <i data-feather="download"></i>
+            <span>导出最终图片</span>
+          </button>
+        </div>
       </aside>
 
     </main>
   </div>
 
   <!-- 用 ES6 Modules 载入 JS 逻辑 -->
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=2"></script>
 </body>
 </html>

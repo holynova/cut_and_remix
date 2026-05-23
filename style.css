@@ -816,3 +816,14 @@ body {
     min-height: 400px;
   }
 }
+
+/* 全宽操作按钮 */
+.btn-full-width {
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
