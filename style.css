@@ -500,6 +500,7 @@ body {
 }
 
 .canvas-container {
+  position: relative;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
   border-radius: 4px;
   overflow: hidden;
@@ -826,4 +827,138 @@ body {
   font-weight: 600;
   margin-top: 10px;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+/* ==========================================
+   局部区域处理 (ROI) 样式
+   ========================================== */
+.roi-selector {
+  position: absolute;
+  border: 2px dashed var(--accent-color);
+  box-sizing: border-box;
+  cursor: move;
+  z-index: 10;
+  /* 使用超大外阴影实现遮罩暗化非选区效果 */
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.2s;
+}
+
+.roi-selector:hover {
+  border-color: #818cf8; /* 悬浮时变亮 */
+}
+
+.roi-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--accent-color);
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 11;
+}
+
+.roi-handle-nw {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+
+.roi-handle-ne {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+
+.roi-handle-se {
+  bottom: -5px;
+  right: -5px;
+  cursor: nwse-resize;
+}
+
+.roi-handle-sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.roi-label {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  background-color: var(--accent-color);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.roi-controls-container {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.roi-buttons-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.roi-buttons-row .btn {
+  flex: 1;
+  font-size: 11px;
+  padding: 6px 8px;
+}
+
+.roi-coords-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.coord-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coord-input-group label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.coord-input {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-color);
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.coord-input:focus {
+  border-color: var(--accent-color);
+}
+
+.roi-help-text {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* 通用隐藏工具类 */
+.hidden {
+  display: none !important;
 }

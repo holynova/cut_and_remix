@@ -3,7 +3,7 @@
  * Connects UI elements to the weaving engine, handles image loading, zoom/pan, and exports.
  */
 
-import { renderWeave } from './weaving-engine.js';
+import { renderWeave, detectSubjectBoundingBox } from './weaving-engine.js';
 
 // === 全局状态管理 ===
 const state = {
@@ -25,7 +25,9 @@ const state = {
     edgeHighlight: 20,
     paperTexture: 'none',
     autoCrop: true,
-    stripOrder: 'normal'
+    stripOrder: 'normal',
+    localProcessing: false,
+    roi: { x: 0, y: 0, w: 0, h: 0 }
   },
   
   // 缩放与平移参数
@@ -109,7 +111,19 @@ const el = {
   chkAutoCrop: document.getElementById('chk-auto-crop'),
   btnSidebarExport: document.getElementById('btn-sidebar-export'),
   selectStripOrder: document.getElementById('select-strip-order'),
-  groupStripOrder: document.getElementById('control-group-strip-order')
+  groupStripOrder: document.getElementById('control-group-strip-order'),
+  
+  // 局部区域处理 (ROI)
+  chkLocalProcessing: document.getElementById('chk-local-processing'),
+  roiControlsContainer: document.getElementById('roi-controls-container'),
+  btnRoiDetect: document.getElementById('btn-roi-detect'),
+  btnRoiReset: document.getElementById('btn-roi-reset'),
+  inputRoiX: document.getElementById('input-roi-x'),
+  inputRoiY: document.getElementById('input-roi-y'),
+  inputRoiW: document.getElementById('input-roi-w'),
+  inputRoiH: document.getElementById('input-roi-h'),
+  roiSelector: document.getElementById('roi-selector'),
+  groupAutoCrop: document.getElementById('control-group-auto-crop')
 };
 
 // === 核心：初始化与事件绑定 ===
@@ -130,6 +144,9 @@ function init() {
   
   // 5. 绑定样例加载事件
   bindPresetEvents();
+  
+  // 5.5 绑定局部选区 (ROI) 交互事件
+  bindROIEvents();
   
   // 6. 默认载入第一个样例作为初始图片
   loadPreset(1);
@@ -152,6 +169,10 @@ function scheduleRender() {
   state.options.weftColor = el.inputWeftColor.value;
   state.options.autoCrop = el.chkAutoCrop.checked;
   state.options.stripOrder = el.selectStripOrder.value;
+  
+  // 同步局部区域处理状态，并更新 DOM 选区框位置
+  state.options.localProcessing = el.chkLocalProcessing.checked;
+  updateROIOverlay();
 
   // 调用编织引擎进行实时 Canvas 绘制
   renderWeave(el.canvas, {
@@ -484,6 +505,7 @@ function handleImageUpload(file, layer) {
         state.imageA = img;
         el.previewA.style.backgroundImage = `url('${img.src}')`;
         el.previewA.classList.add('has-image');
+        initDefaultROI(img.naturalWidth || img.width, img.naturalHeight || img.height);
         resetZoomPan();
       } else {
         state.imageB = img;
@@ -510,6 +532,9 @@ function loadPreset(id) {
   img.onload = () => {
     state.imageA = img;
     state.imageB = null; // 样例默认与自己编织或纯色编织
+    
+    // 初始化默认 ROI
+    initDefaultROI(img.naturalWidth || img.width, img.naturalHeight || img.height);
     
     // 设置上传预览框的缩略图背景
     el.previewA.style.backgroundImage = `url('${samplePath}')`;
@@ -606,6 +631,203 @@ function loadPreset(id) {
     resetZoomPan();
     scheduleRender();
   };
+}
+
+// === 局部处理辅助函数与交互绑定 ===
+function initDefaultROI(w, h) {
+  const roiW = Math.round(w * 0.5);
+  const roiH = Math.round(h * 0.5);
+  const roiX = Math.round((w - roiW) / 2);
+  const roiY = Math.round((h - roiH) / 2);
+  
+  state.options.roi = { x: roiX, y: roiY, w: roiW, h: roiH };
+  
+  // 设置输入框的最大值约束
+  el.inputRoiX.max = w;
+  el.inputRoiY.max = h;
+  el.inputRoiW.max = w;
+  el.inputRoiH.max = h;
+}
+
+function updateROIOverlay() {
+  const { localProcessing, roi } = state.options;
+  
+  if (!localProcessing || !roi || !state.imageA) {
+    el.roiSelector.classList.add('hidden');
+    el.roiControlsContainer.classList.add('hidden');
+    el.groupAutoCrop.classList.remove('hidden');
+    return;
+  }
+  
+  el.roiSelector.classList.remove('hidden');
+  el.roiControlsContainer.classList.remove('hidden');
+  el.groupAutoCrop.classList.add('hidden');
+
+  el.roiSelector.style.left = `${roi.x}px`;
+  el.roiSelector.style.top = `${roi.y}px`;
+  el.roiSelector.style.width = `${roi.w}px`;
+  el.roiSelector.style.height = `${roi.h}px`;
+  
+  el.inputRoiX.value = roi.x;
+  el.inputRoiY.value = roi.y;
+  el.inputRoiW.value = roi.w;
+  el.inputRoiH.value = roi.h;
+}
+
+function bindROIEvents() {
+  el.chkLocalProcessing.addEventListener('change', () => {
+    state.options.localProcessing = el.chkLocalProcessing.checked;
+    scheduleRender();
+  });
+
+  const handleInputChange = () => {
+    if (!state.imageA) return;
+    const W = state.imageA.naturalWidth || state.imageA.width;
+    const H = state.imageA.naturalHeight || state.imageA.height;
+
+    let x = parseInt(el.inputRoiX.value) || 0;
+    let y = parseInt(el.inputRoiY.value) || 0;
+    let w = parseInt(el.inputRoiW.value) || 10;
+    let h = parseInt(el.inputRoiH.value) || 10;
+
+    w = Math.max(10, Math.min(W - x, w));
+    h = Math.max(10, Math.min(H - y, h));
+    x = Math.max(0, Math.min(W - w, x));
+    y = Math.max(0, Math.min(H - h, y));
+
+    state.options.roi = { x, y, w, h };
+    scheduleRender();
+  };
+
+  [el.inputRoiX, el.inputRoiY, el.inputRoiW, el.inputRoiH].forEach(input => {
+    input.addEventListener('change', handleInputChange);
+  });
+
+  el.btnRoiDetect.addEventListener('click', () => {
+    if (!state.imageA) return;
+    const box = detectSubjectBoundingBox(state.imageA);
+    state.options.roi = box;
+    scheduleRender();
+  });
+
+  el.btnRoiReset.addEventListener('click', () => {
+    if (!state.imageA) return;
+    const W = state.imageA.naturalWidth || state.imageA.width;
+    const H = state.imageA.naturalHeight || state.imageA.height;
+    state.options.roi = { x: 0, y: 0, w: W, h: H };
+    scheduleRender();
+  });
+
+  let isDraggingROI = false;
+  let isResizingROI = false;
+  let resizeDirection = '';
+  
+  let startPointer = { x: 0, y: 0 };
+  let startROI = { x: 0, y: 0, w: 0, h: 0 };
+
+  el.roiSelector.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.target.classList.contains('roi-handle')) return;
+    
+    isDraggingROI = true;
+    startPointer = { x: e.clientX, y: e.clientY };
+    startROI = { ...state.options.roi };
+    
+    e.stopPropagation();
+    e.preventDefault();
+  });
+
+  el.roiSelector.querySelectorAll('.roi-handle').forEach(handle => {
+    handle.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      
+      isResizingROI = true;
+      if (handle.classList.contains('roi-handle-nw')) resizeDirection = 'nw';
+      else if (handle.classList.contains('roi-handle-ne')) resizeDirection = 'ne';
+      else if (handle.classList.contains('roi-handle-se')) resizeDirection = 'se';
+      else if (handle.classList.contains('roi-handle-sw')) resizeDirection = 'sw';
+      
+      startPointer = { x: e.clientX, y: e.clientY };
+      startROI = { ...state.options.roi };
+      
+      e.stopPropagation();
+      e.preventDefault();
+    });
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDraggingROI && !isResizingROI) return;
+    if (!state.imageA) return;
+    const W = state.imageA.naturalWidth || state.imageA.width;
+    const H = state.imageA.naturalHeight || state.imageA.height;
+
+    const deltaX = (e.clientX - startPointer.x) / state.zoom;
+    const deltaY = (e.clientY - startPointer.y) / state.zoom;
+
+    if (isDraggingROI) {
+      let newX = Math.round(startROI.x + deltaX);
+      let newY = Math.round(startROI.y + deltaY);
+
+      newX = Math.max(0, Math.min(W - startROI.w, newX));
+      newY = Math.max(0, Math.min(H - startROI.h, newY));
+
+      state.options.roi.x = newX;
+      state.options.roi.y = newY;
+      
+      scheduleRender();
+    } 
+    else if (isResizingROI) {
+      let x = startROI.x;
+      let y = startROI.y;
+      let w = startROI.w;
+      let h = startROI.h;
+      
+      const minSize = 20;
+
+      if (resizeDirection === 'nw') {
+        const potentialX = Math.round(startROI.x + deltaX);
+        const actualX = Math.max(0, Math.min(startROI.x + startROI.w - minSize, potentialX));
+        const deltaXActual = actualX - startROI.x;
+        x = actualX;
+        w = startROI.w - deltaXActual;
+
+        const potentialY = Math.round(startROI.y + deltaY);
+        const actualY = Math.max(0, Math.min(startROI.y + startROI.h - minSize, potentialY));
+        const deltaYActual = actualY - startROI.y;
+        y = actualY;
+        h = startROI.h - deltaYActual;
+      } 
+      else if (resizeDirection === 'ne') {
+        w = Math.max(minSize, Math.min(W - startROI.x, Math.round(startROI.w + deltaX)));
+        
+        const potentialY = Math.round(startROI.y + deltaY);
+        const actualY = Math.max(0, Math.min(startROI.y + startROI.h - minSize, potentialY));
+        const deltaYActual = actualY - startROI.y;
+        y = actualY;
+        h = startROI.h - deltaYActual;
+      } 
+      else if (resizeDirection === 'se') {
+        w = Math.max(minSize, Math.min(W - startROI.x, Math.round(startROI.w + deltaX)));
+        h = Math.max(minSize, Math.min(H - startROI.y, Math.round(startROI.h + deltaY)));
+      } 
+      else if (resizeDirection === 'sw') {
+        const potentialX = Math.round(startROI.x + deltaX);
+        const actualX = Math.max(0, Math.min(startROI.x + startROI.w - minSize, potentialX));
+        const deltaXActual = actualX - startROI.x;
+        x = actualX;
+        w = startROI.w - deltaXActual;
+
+        h = Math.max(minSize, Math.min(H - startROI.y, Math.round(startROI.h + deltaY)));
+      }
+
+      state.options.roi = { x, y, w, h };
+      scheduleRender();
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDraggingROI = false;
+    isResizingROI = false;
+  });
 }
 
 // 页面加载完成后启动

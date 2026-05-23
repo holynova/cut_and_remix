@@ -168,7 +168,9 @@ export function renderWeave(canvas, options) {
     edgeHighlight = 20,
     paperTexture = 'none',
     autoCrop = true,
-    stripOrder = 'normal'
+    stripOrder = 'normal',
+    localProcessing = false,
+    roi = null
   } = options;
 
   if (!imageA) return;
@@ -179,13 +181,17 @@ export function renderWeave(canvas, options) {
   const W = imageA.naturalWidth || imageA.width;
   const H = imageA.naturalHeight || imageA.height;
 
+  // 局部处理时强制关闭自动切边，以保证外部完整性
+  const isLocal = localProcessing && roi && roi.w > 0 && roi.h > 0;
+  const activeAutoCrop = isLocal ? false : autoCrop;
+
   // 2. 如果是竖条错位且开启了自动切边，计算切边范围
   let cropTop = 0;
   let cropBottom = H;
   let targetHeight = H;
   const maxShift = (offsetY / 100) * H;
 
-  if (weaveType === 'shift' && autoCrop && maxShift > 0) {
+  if (weaveType === 'shift' && activeAutoCrop && maxShift > 0) {
     let maxDy = -Infinity;
     let minDy = Infinity;
     for (let i = 0; i < densityX; i++) {
@@ -208,7 +214,7 @@ export function renderWeave(canvas, options) {
   }
 
   // 4. 决定绘制的目标 Context。如果是切边模式，我们先绘制到离屏 Canvas，再截取到主 Canvas
-  const useOffscreen = weaveType === 'shift' && autoCrop && maxShift > 0 && cropBottom > cropTop;
+  const useOffscreen = weaveType === 'shift' && activeAutoCrop && maxShift > 0 && cropBottom > cropTop;
   const renderCanvas = useOffscreen ? document.createElement('canvas') : canvas;
   if (useOffscreen) {
     renderCanvas.width = W;
@@ -218,9 +224,25 @@ export function renderWeave(canvas, options) {
   renderCtx.clearRect(0, 0, W, H);
 
   // 5. 先填充背景色（如果需要）
-  if (weaveType === 'shift' || (weaveType === 'grid' && weftMode === 'color')) {
-    renderCtx.fillStyle = weftColor;
-    renderCtx.fillRect(0, 0, W, H);
+  if (isLocal) {
+    // 局部处理：先绘制完整原图，再开启剪裁区域
+    renderCtx.drawImage(imageA, 0, 0, W, H);
+    renderCtx.save();
+    renderCtx.beginPath();
+    renderCtx.rect(roi.x, roi.y, roi.w, roi.h);
+    renderCtx.clip();
+    
+    // 在剪裁区内，如需要则填充背景色（由于是局部剪裁，仅填充 roi 区域）
+    if (weaveType === 'shift' || (weaveType === 'grid' && weftMode === 'color')) {
+      renderCtx.fillStyle = weftColor;
+      renderCtx.fillRect(roi.x, roi.y, roi.w, roi.h);
+    }
+  } else {
+    // 全图处理：按需填充整张背景
+    if (weaveType === 'shift' || (weaveType === 'grid' && weftMode === 'color')) {
+      renderCtx.fillStyle = weftColor;
+      renderCtx.fillRect(0, 0, W, H);
+    }
   }
 
   // 6. 核心绘制逻辑
@@ -401,6 +423,11 @@ export function renderWeave(canvas, options) {
     }
   }
 
+  // 如果是局部处理，在此处恢复剪裁环境，以便纸纹和离屏拷贝能处理完整画布
+  if (isLocal) {
+    renderCtx.restore();
+  }
+
   // 7. 纸张肌理叠加层
   if (paperTexture !== 'none') {
     const texPattern = createProceduralTexture(renderCtx, paperTexture, W, H);
@@ -418,4 +445,124 @@ export function renderWeave(canvas, options) {
     ctx.clearRect(0, 0, W, targetHeight);
     ctx.drawImage(renderCanvas, 0, cropTop, W, targetHeight, 0, 0, W, targetHeight);
   }
+}
+
+/**
+ * 智能检测图像主体区域 (基于显著性检测算法：色彩对比度 + 边缘密度梯度)
+ * @param {HTMLImageElement} img 输入图像
+ * @returns {Object} {x, y, w, h} 像素级包围框坐标
+ */
+export function detectSubjectBoundingBox(img) {
+  const size = 100; // 使用 100x100 的采样图进行高效分析
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, size, size);
+  
+  const imgData = ctx.getImageData(0, 0, size, size);
+  const data = imgData.data;
+  
+  // 1. 计算图像的平均色彩
+  let rSum = 0, gSum = 0, bSum = 0;
+  const pixelCount = size * size;
+  for (let i = 0; i < data.length; i += 4) {
+    rSum += data[i];
+    gSum += data[i + 1];
+    bSum += data[i + 2];
+  }
+  const rAvg = rSum / pixelCount;
+  const gAvg = gSum / pixelCount;
+  const bAvg = bSum / pixelCount;
+  
+  // 2. 估计每个像素点的显著性值 (Saliency = 40% 色彩对比度差异 + 60% Sobel-like 局部亮度梯度)
+  const saliency = new Float32Array(pixelCount);
+  
+  // 获取局部像素亮度辅助函数
+  const getLum = (x, y) => {
+    if (x < 0 || x >= size || y < 0 || y >= size) return 0;
+    const idx = (y * size + x) * 4;
+    return 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+  };
+  
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const idx = (y * size + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      
+      // A. 色彩与均值的欧式距离
+      const colorDist = Math.sqrt((r - rAvg) ** 2 + (g - gAvg) ** 2 + (b - bAvg) ** 2);
+      
+      // B. 边缘梯度（横向及纵向差分之和）
+      const gradX = getLum(x + 1, y) - getLum(x - 1, y);
+      const gradY = getLum(x, y + 1) - getLum(x, y - 1);
+      const edgeGrad = Math.sqrt(gradX * gradX + gradY * gradY);
+      
+      saliency[y * size + x] = colorDist * 0.4 + edgeGrad * 0.6;
+    }
+  }
+  
+  // 3. 将显著性投影到 X 轴与 Y 轴
+  const xProfile = new Float32Array(size);
+  const yProfile = new Float32Array(size);
+  let totalSaliency = 0;
+  
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const val = saliency[y * size + x];
+      xProfile[x] += val;
+      yProfile[y] += val;
+      totalSaliency += val;
+    }
+  }
+  
+  // 4. 从分布曲线中截取中间 65% 的主要能量区间，作为主体所在位置
+  const getThresholdRange = (profile, total, ratio = 0.65) => {
+    const target = total * ratio;
+    const padding = (total - target) / 2;
+    
+    let sum = 0;
+    let start = 0;
+    for (let i = 0; i < profile.length; i++) {
+      sum += profile[i];
+      if (sum >= padding) {
+        start = i;
+        break;
+      }
+    }
+    
+    sum = 0;
+    let end = profile.length - 1;
+    for (let i = profile.length - 1; i >= 0; i--) {
+      sum += profile[i];
+      if (sum >= padding) {
+        end = i;
+        break;
+      }
+    }
+    
+    // 防御性安全检查，确保选区有合理的尺寸
+    if (end <= start) {
+      start = Math.floor(profile.length * 0.2);
+      end = Math.floor(profile.length * 0.8);
+    }
+    
+    return [start / size, (end - start) / size];
+  };
+  
+  const [xNorm, wNorm] = getThresholdRange(xProfile, totalSaliency);
+  const [yNorm, hNorm] = getThresholdRange(yProfile, totalSaliency);
+  
+  // 5. 还原至原图实际像素分辨率
+  const imgW = img.naturalWidth || img.width;
+  const imgH = img.naturalHeight || img.height;
+  
+  return {
+    x: Math.round(xNorm * imgW),
+    y: Math.round(yNorm * imgH),
+    w: Math.round(wNorm * imgW),
+    h: Math.round(hNorm * imgH)
+  };
 }

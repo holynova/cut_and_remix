@@ -126,6 +126,14 @@
         <div class="canvas-wrapper" id="canvas-wrapper">
           <div class="canvas-container" id="canvas-container">
             <canvas id="weave-canvas"></canvas>
+            <!-- 局部处理区域选择框 -->
+            <div id="roi-selector" class="roi-selector hidden">
+              <div class="roi-handle roi-handle-nw"></div>
+              <div class="roi-handle roi-handle-ne"></div>
+              <div class="roi-handle roi-handle-se"></div>
+              <div class="roi-handle roi-handle-sw"></div>
+              <div class="roi-label">局部区域 (ROI)</div>
+            </div>
           </div>
           <!-- 辅助网格和缩放指示 -->
           <div class="workspace-info">
@@ -164,6 +172,52 @@
                 <span>垂直线条上下波浪起伏错位</span>
               </div>
             </button>
+          </div>
+        </div>
+
+        <!-- 局部区域处理 (ROI) -->
+        <div class="panel-section">
+          <h2 class="panel-title">
+            <i data-feather="crop"></i>
+            <span>局部区域处理 (ROI)</span>
+          </h2>
+          <div class="control-group">
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-local-processing">
+              <span class="checkmark"></span>
+              <span>启用局部处理</span>
+            </label>
+          </div>
+          <div id="roi-controls-container" class="roi-controls-container hidden">
+            <div class="roi-buttons-row">
+              <button id="btn-roi-detect" class="btn btn-secondary btn-small" title="智能识别图像中的主体">
+                <i data-feather="target"></i>
+                <span>智能检测主体</span>
+              </button>
+              <button id="btn-roi-reset" class="btn btn-secondary btn-small" title="将选区重置为全图">
+                <i data-feather="refresh-cw"></i>
+                <span>重置为全图</span>
+              </button>
+            </div>
+            <div class="roi-coords-grid">
+              <div class="coord-input-group">
+                <label for="input-roi-x">X 坐标</label>
+                <input type="number" id="input-roi-x" class="coord-input" min="0">
+              </div>
+              <div class="coord-input-group">
+                <label for="input-roi-y">Y 坐标</label>
+                <input type="number" id="input-roi-y" class="coord-input" min="0">
+              </div>
+              <div class="coord-input-group">
+                <label for="input-roi-w">宽度</label>
+                <input type="number" id="input-roi-w" class="coord-input" min="10">
+              </div>
+              <div class="coord-input-group">
+                <label for="input-roi-h">高度</label>
+                <input type="number" id="input-roi-h" class="coord-input" min="10">
+              </div>
+            </div>
+            <p class="roi-help-text">可在画布上直接拖拉或拉伸边缘调整局部范围</p>
           </div>
         </div>
 
