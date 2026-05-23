@@ -181,6 +181,10 @@ function scheduleRender() {
     ...state.options
   });
   
+  // 同步容器的物理尺寸与 Canvas 渲染属性尺寸一致，确保选区定位无偏差
+  el.canvasContainer.style.width = `${el.canvas.width}px`;
+  el.canvasContainer.style.height = `${el.canvas.height}px`;
+
   // 更新画布底部状态栏分辨率
   el.infoResolution.textContent = `${el.canvas.width} × ${el.canvas.height} px`;
 }
@@ -428,8 +432,8 @@ function resetZoomPan() {
   // 计算恰好契合 wrapper 容器的缩放比例 (Fit Screen)
   const wrapperW = el.canvasWrapper.clientWidth - 40;
   const wrapperH = el.canvasWrapper.clientHeight - 40;
-  const canvasW = el.canvas.width;
-  const canvasH = el.canvas.height;
+  const canvasW = state.imageA.naturalWidth || state.imageA.width;
+  const canvasH = state.imageA.naturalHeight || state.imageA.height;
   
   const scaleX = wrapperW / canvasW;
   const scaleY = wrapperH / canvasH;
