@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>织影 WeaveArt - 数字化照片编织艺术工坊</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 引入 Google Fonts: Outfit 与 Noto Sans SC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- 引入 Feather Icons 用于质感图标 -->
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 头部导航栏 -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M6 4V20M12 4V20M18 4V20" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>WeaveArt</h1>
+          <span>织影工坊</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-reset" class="btn btn-secondary" title="重置所有参数">
+          <i data-feather="rotate-ccw"></i>
+          <span>重置</span>
+        </button>
+        <button id="btn-export" class="btn btn-primary" title="导出高分辨率图像">
+          <i data-feather="download"></i>
+          <span>保存图片</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 主工作区 -->
+    <main class="app-main">
+      
+      <!-- 左侧栏：上传与源图像 -->
+      <aside class="sidebar sidebar-left">
+        <div class="panel-section">
+          <h2 class="panel-title">
+            <i data-feather="image"></i>
+            <span>图像源与图层</span>
+          </h2>
+          
+          <!-- Image A: 经线/底图 -->
+          <div class="upload-box-wrapper">
+            <label class="layer-label">经线图层 (Warp - Image A)</label>
+            <div id="drop-zone-a" class="upload-drop-zone active">
+              <input type="file" id="input-image-a" accept="image/*" class="file-input">
+              <div class="upload-preview" id="preview-a">
+                <i data-feather="plus" class="upload-icon"></i>
+                <p>点击或拖拽上传</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image B: 纬线/织线 -->
+          <div class="upload-box-wrapper">
+            <label class="layer-label">纬线图层 (Weft - Image B)</label>
+            <div class="toggle-container">
+              <button id="mode-weft-image" class="toggle-btn active">使用图像</button>
+              <button id="mode-weft-color" class="toggle-btn">使用纯色</button>
+            </div>
+            
+            <!-- 图像上传 -->
+            <div id="drop-zone-b" class="upload-drop-zone">
+              <input type="file" id="input-image-b" accept="image/*" class="file-input">
+              <div class="upload-preview" id="preview-b">
+                <i data-feather="plus" class="upload-icon"></i>
+                <p>点击或拖拽上传</p>
+              </div>
+            </div>
+
+            <!-- 纯色选择器 -->
+            <div id="weft-color-picker-container" class="color-picker-container hidden">
+              <div class="color-presets">
+                <button class="color-preset active" style="background-color: #0f172a;" data-color="#0f172a"></button> <!-- Slate 900 -->
+                <button class="color-preset" style="background-color: #ffffff;" data-color="#ffffff"></button>
+                <button class="color-preset" style="background-color: #b45309;" data-color="#b45309"></button> <!-- Amber 700 -->
+                <button class="color-preset" style="background-color: #1e3a8a;" data-color="#1e3a8a"></button> <!-- Navy 900 -->
+                <button class="color-preset" style="background-color: #15803d;" data-color="#15803d"></button> <!-- Green 700 -->
+                <button class="color-preset" style="background-color: #be123c;" data-color="#be123c"></button> <!-- Rose 700 -->
+              </div>
+              <div class="custom-color-row">
+                <input type="color" id="input-weft-color" value="#0f172a">
+                <span id="label-weft-color">#0F172A</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 官方样例 -->
+        <div class="panel-section presets-section">
+          <h2 class="panel-title">
+            <i data-feather="compass"></i>
+            <span>示例模板</span>
+          </h2>
+          <div class="preset-cards">
+            <div class="preset-card" id="preset-1" data-sample="1">
+              <div class="preset-thumb" style="background-image: url('assets/sample1.jpg')"></div>
+              <span>竖条错位波浪</span>
+            </div>
+            <div class="preset-card" id="preset-2" data-sample="2">
+              <div class="preset-thumb" style="background-image: url('assets/sample2.jpg')"></div>
+              <span>马赛克格子平织</span>
+            </div>
+            <div class="preset-card" id="preset-3" data-sample="3">
+              <div class="preset-thumb" style="background-image: url('assets/sample3.jpg')"></div>
+              <span>斜纹阶梯质感</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中间：画布工作区 -->
+      <section class="workspace">
+        <div class="canvas-wrapper" id="canvas-wrapper">
+          <div class="canvas-container" id="canvas-container">
+            <canvas id="weave-canvas"></canvas>
+          </div>
+          <!-- 辅助网格和缩放指示 -->
+          <div class="workspace-info">
+            <span id="info-resolution">无图像</span>
+            <span id="info-zoom">100%</span>
+          </div>
+          <!-- 缩放重置与快捷操作悬浮栏 -->
+          <div class="floating-controls">
+            <button id="zoom-in" class="floating-btn" title="放大"><i data-feather="zoom-in"></i></button>
+            <button id="zoom-out" class="floating-btn" title="缩小"><i data-feather="zoom-out"></i></button>
+            <button id="zoom-fit" class="floating-btn" title="适应屏幕"><i data-feather="maximize"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右侧栏：编织控制器 -->
+      <aside class="sidebar sidebar-right">
+        <!-- 编织类型选择 -->
+        <div class="panel-section">
+          <h2 class="panel-title">
+            <i data-feather="layers"></i>
+            <span>编织效果选择</span>
+          </h2>
+          <div class="weave-type-selector">
+            <button class="type-btn active" id="type-grid">
+              <i data-feather="grid"></i>
+              <div class="type-meta">
+                <strong>双向网格编织</strong>
+                <span>横向与纵向切片交互穿插</span>
+              </div>
+            </button>
+            <button class="type-btn" id="type-shift">
+              <i data-feather="align-justify" class="rotate-90"></i>
+              <div class="type-meta">
+                <strong>竖条波形错位</strong>
+                <span>垂直线条上下波浪起伏错位</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 经纬网格与切片参数 -->
+        <div class="panel-section">
+          <h2 class="panel-title">
+            <i data-feather="sliders"></i>
+            <span>切片密度与形态</span>
+          </h2>
+          
+          <!-- 切片密度 -->
+          <div class="control-group">
+            <div class="control-header">
+              <label for="range-density-x">经线条数 (竖条数)</label>
+              <span id="val-density-x" class="control-value">30</span>
+            </div>
+            <input type="range" id="range-density-x" min="5" max="100" value="30" class="slider">
+          </div>
+
+          <div class="control-group" id="control-group-density-y">
+            <div class="control-header">
+              <label for="range-density-y">纬线条数 (横条数)</label>
+              <span id="val-density-y" class="control-value">30</span>
+            </div>
+            <input type="range" id="range-density-y" min="5" max="100" value="30" class="slider">
+          </div>
+
+          <div class="control-group" id="control-group-link-density">
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-link-density" checked>
+              <span class="checkmark"></span>
+              <span>同步横纵条数</span>
+            </label>
+          </div>
+
+          <!-- 错位与偏移 -->
+          <div class="control-group">
+            <div class="control-header">
+              <label for="range-offset-x" id="label-offset-x">经向图像位移 (Warp Shift)</label>
+              <span id="val-offset-x" class="control-value">0%</span>
+            </div>
+            <input type="range" id="range-offset-x" min="-100" max="100" value="0" class="slider">
+          </div>
+
+          <div class="control-group" id="control-group-offset-y">
+            <div class="control-header">
+              <label for="range-offset-y">纬向图像位移 (Weft Shift)</label>
+              <span id="val-offset-y" class="control-value">15%</span>
+            </div>
+            <input type="range" id="range-offset-y" min="-100" max="100" value="15" class="slider">
+          </div>
+
+          <!-- 错位形态（仅当竖条错位时有用） -->
+          <div class="control-group hidden" id="control-group-wave-type">
+            <div class="control-header">
+              <label for="select-wave-type">错位起伏算法</label>
+            </div>
+            <select id="select-wave-type" class="custom-select">
+              <option value="alternating">交替上下</option>
+              <option value="sine">正弦波形</option>
+              <option value="triangle">锯齿波形</option>
+              <option value="random">随机噪音</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 纸纹与3D质感控制 -->
+        <div class="panel-section">
+          <h2 class="panel-title">
+            <i data-feather="feather"></i>
+            <span>物理肌理与 3D 投影</span>
+          </h2>
+
+          <!-- 编织纹理（仅网格编织有用） -->
+          <div class="control-group" id="control-group-weave-pattern">
+            <div class="control-header">
+              <label for="select-weave-pattern">编织交织方式</label>
+            </div>
+            <select id="select-weave-pattern" class="custom-select">
+              <option value="plain">1x1 平纹交错 (Plain Weave)</option>
+              <option value="twill-2-2">2x2 斜纹阶梯 (Twill Weave)</option>
+              <option value="twill-3-3">3x3 斜纹阶梯 (Twill Weave)</option>
+              <option value="custom-diagonal">对角线式交织 (Diagonal)</option>
+            </select>
+          </div>
+
+          <!-- 投影深度 -->
+          <div class="control-group">
+            <div class="control-header">
+              <label for="range-shadow-depth">折叠阴影强度</label>
+              <span id="val-shadow-depth" class="control-value">40%</span>
+            </div>
+            <input type="range" id="range-shadow-depth" min="0" max="100" value="40" class="slider">
+          </div>
+
+          <!-- 边缘反光 -->
+          <div class="control-group">
+            <div class="control-header">
+              <label for="range-edge-highlight">切面反光度</label>
+              <span id="val-edge-highlight" class="control-value">20%</span>
+            </div>
+            <input type="range" id="range-edge-highlight" min="0" max="100" value="20" class="slider">
+          </div>
+
+          <!-- 纸张纹理贴图 -->
+          <div class="control-group">
+            <div class="control-header">
+              <label for="select-paper-texture">叠加纸张肌理</label>
+            </div>
+            <select id="select-paper-texture" class="custom-select">
+              <option value="none">无 (光滑材质)</option>
+              <option value="matte">哑光特种纸 (Matte)</option>
+              <option value="canvas">粗糙画布纹 (Canvas)</option>
+              <option value="linen">细密亚麻布 (Linen)</option>
+            </select>
+          </div>
+        </div>
+      </aside>
+
+    </main>
+  </div>
+
+  <!-- 用 ES6 Modules 载入 JS 逻辑 -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
