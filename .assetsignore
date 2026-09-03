@@ -1,0 +1,5 @@
+.git/
+.wrangler/
+.playwright-cli/
+.gitignore
+wrangler.toml
