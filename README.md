@@ -2,6 +2,11 @@
 
 > **网页版数字化照片编织（Photo Weaving）与图像解构艺术工坊**
 
+<p align="center">
+  <img src="assets/readme/hero.svg" width="100%" alt="织影 WeaveArt: &gt; **网页版数字化照片编织（Photo Weaving）与图像解构艺术工坊**">
+</p>
+
+
 ---
 
 ### 🔗 在线演示
