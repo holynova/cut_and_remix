@@ -2,6 +2,11 @@
 
 > **网页版数字化照片编织（Photo Weaving）与图像解构艺术工坊**
 
+<p align="center">
+  <img src="assets/readme/hero.svg" width="100%" alt="织影 WeaveArt: &gt; **网页版数字化照片编织（Photo Weaving）与图像解构艺术工坊**">
+</p>
+
+
 ---
 
 ### 🔗 在线演示
@@ -14,6 +19,12 @@
 ![WeaveArt Editor Screenshot](screenshot.png)
 
 ---
+
+## 先完成一张编织图
+
+1. 载入内置示例，或选择自己的图片。
+2. 在网格编织与波浪错位中选择一种方式，调整条带和材质参数。
+3. 缩放查看细节，再导出 PNG。
 
 ## ✨ 核心功能
 
@@ -38,3 +49,9 @@ python3 -m http.server 8080
 ```
 
 打开浏览器访问 [http://127.0.0.1:8080](http://127.0.0.1:8080) 即可使用。
+
+## 实现入口
+
+- [weaving-engine.js](weaving-engine.js)：图像编织与渲染引擎。
+- [app.js](app.js)：界面状态、参数交互和导出。
+- [style.css](style.css)：编辑界面样式。
