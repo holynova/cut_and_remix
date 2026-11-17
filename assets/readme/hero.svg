@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="360" viewBox="0 0 1200 360"
+     role="img" aria-labelledby="title desc">
+  <title id="title">织影 WeaveArt — 数字化照片编织与图像解构艺术工坊</title>
+  <desc id="desc">深蓝底标题：织影 WeaveArt，副标题把照片剪成纸条，再织成一幅画；右侧是蓝金两色交错的编织网格示意。</desc>
+
+  <g id="bg">
+    <rect width="1200" height="360" rx="26" fill="#0f1420"/>
+  </g>
+
+  <g id="title-block" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+    <text x="56" y="62" font-size="19" letter-spacing="3" fill="#6b8afd">照片编织 · PHOTO WEAVING · 纯前端</text>
+    <text x="56" y="130" font-size="62" font-weight="700" fill="#f5f0e1">织影 WeaveArt</text>
+    <text x="56" y="172" font-size="23" fill="#e8e8e8">把照片剪成纸条，再织成一幅画</text>
+    <text x="56" y="208" font-size="19" fill="#9aa7bd">双图混织、波浪错位、纸纹质感，上传照片，一键织成画。</text>
+    <g id="chips" font-size="18" fill="#e8e8e8" text-anchor="middle">
+      <g><rect x="56" y="238" width="126" height="36" rx="18" fill="#182238" stroke="#2a3a5c" stroke-width="1.5"/><text x="119" y="262">网格编织</text></g>
+      <g><rect x="194" y="238" width="126" height="36" rx="18" fill="#182238" stroke="#2a3a5c" stroke-width="1.5"/><text x="257" y="262">波浪错位</text></g>
+      <g><rect x="332" y="238" width="150" height="36" rx="18" fill="#182238" stroke="#2a3a5c" stroke-width="1.5"/><text x="407" y="262">3 个名画模板</text></g>
+      <g><rect x="494" y="238" width="126" height="36" rx="18" fill="#182238" stroke="#2a3a5c" stroke-width="1.5"/><text x="557" y="262">PNG 导出</text></g>
+    </g>
+  </g>
+
+  <g id="weave-grid">
+    <g id="weave-label" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+      <text x="960" y="332" font-size="16" fill="#9aa7bd" text-anchor="middle">1×1 平纹 · 经纬交错</text>
+    </g>
+    <g id="weave-cells">
+      <rect x="783" y="65" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="826" y="67" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="873" y="65" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="916" y="67" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="963" y="65" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1006" y="67" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="1053" y="65" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1096" y="67" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="781" y="114" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="828" y="112" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="871" y="114" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="918" y="112" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="961" y="114" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="1008" y="112" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1051" y="114" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="1098" y="112" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="783" y="159" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="826" y="161" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="873" y="159" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="916" y="161" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="963" y="159" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1006" y="161" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="1053" y="159" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1096" y="161" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="781" y="208" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="828" y="206" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="871" y="208" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="918" y="206" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="961" y="208" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="1008" y="206" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1051" y="208" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="1098" y="206" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="783" y="253" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="826" y="255" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="873" y="253" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="916" y="255" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="963" y="253" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1006" y="255" width="43" height="41" rx="6" fill="#e8b04b"/>
+      <rect x="1053" y="253" width="39" height="45" rx="6" fill="#6b8afd"/>
+      <rect x="1096" y="255" width="43" height="41" rx="6" fill="#e8b04b"/>
+    </g>
+  </g>
+</svg>
